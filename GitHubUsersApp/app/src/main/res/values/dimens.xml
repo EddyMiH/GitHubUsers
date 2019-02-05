@@ -1,0 +1,12 @@
+<resources>
+    <dimen name="fab_margin">16dp</dimen>
+    <dimen name="card_view_corner_radius">5dp</dimen>
+    <dimen name="elevation">4dp</dimen>
+    <dimen name="card_view_layout_margin">10dp</dimen>
+    <dimen name="card_view_image_size">100dp</dimen>
+    <dimen name="image_size_user_page">200dp</dimen>
+    <dimen name="card_view_name_label_size">20sp</dimen>
+    <dimen name="margin_image_user_page">20dp</dimen>
+    <dimen name="repos_label_text_size">15sp</dimen>
+    <dimen name="repos_item_text_size">30sp</dimen>
+</resources>

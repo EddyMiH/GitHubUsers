@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<android.support.v7.widget.CardView
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/cardView"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:elevation="@dimen/elevation"
+    app:cardElevation="@dimen/elevation"
+    app:cardUseCompatPadding="true"
+    app:cardBackgroundColor="@android:color/darker_gray"
+    android:layout_marginStart="@dimen/card_view_layout_margin"
+    android:layout_marginEnd="@dimen/card_view_layout_margin"
+    app:cardCornerRadius="@dimen/card_view_corner_radius"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <android.support.constraint.ConstraintLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        xmlns:app="http://schemas.android.com/apk/res-auto">
+
+        <ImageView
+            android:layout_width="@dimen/card_view_image_size"
+            android:layout_height="@dimen/card_view_image_size"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            android:id="@+id/user_image_card_view"
+            android:layout_margin="@dimen/fab_margin"
+            android:scaleType="fitCenter"
+
+            android:src="@drawable/ic_launcher_background"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/test_string"
+            android:textAllCaps="false"
+            android:textSize="@dimen/card_view_name_label_size"
+            android:id="@+id/label_user_full_name_card_view"
+            android:layout_margin="@dimen/fab_margin"
+            android:ellipsize="end"
+            android:maxLines="1"
+            app:layout_constraintStart_toEndOf="@id/user_image_card_view"
+            app:layout_constraintTop_toTopOf="parent"
+            />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/user_name_label"
+            app:layout_constraintTop_toBottomOf="@id/label_user_full_name_card_view"
+            app:layout_constraintStart_toStartOf="@+id/label_user_full_name_card_view"
+            android:id="@+id/user_name_label_card_view"
+            />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/label_user_user_name_card_view"
+            android:text="@string/test_string"
+            android:ellipsize="end"
+            app:layout_constraintTop_toBottomOf="@id/label_user_full_name_card_view"
+            app:layout_constraintStart_toEndOf="@+id/user_name_label_card_view"
+            />
+
+
+    </android.support.constraint.ConstraintLayout>
+
+</android.support.v7.widget.CardView>
+

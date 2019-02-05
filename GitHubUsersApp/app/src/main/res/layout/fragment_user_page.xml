@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:background="@color/colorDark">
+
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/image_size_user_page"
+        android:background="@color/colorDark"
+        android:src="@drawable/ic_launcher_background"
+        android:id="@+id/image_view_user_page_fragment"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_margin="@dimen/margin_image_user_page"
+        android:scaleType="centerCrop"
+        />
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/label_user_full_name_user_page_fragment"
+        android:text="@string/test_string"
+        android:textColor="@android:color/white"
+        android:textSize="@dimen/card_view_name_label_size"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/image_view_user_page_fragment"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_margin="@dimen/margin_image_user_page"/>
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/followers_count_label_user_page_fragment"
+        android:text="@string/followers_count_label"
+        android:textColor="@android:color/white"
+        android:textAllCaps="false"
+        android:layout_margin="@dimen/margin_image_user_page"
+        app:layout_constraintTop_toBottomOf="@id/label_user_full_name_user_page_fragment"
+        app:layout_constraintStart_toStartOf="@id/label_user_full_name_user_page_fragment"
+
+        />
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/followers_count_number_user_page_fragment"
+        android:textColor="@android:color/white"
+        android:text="@string/zero"
+        app:layout_constraintStart_toEndOf="@+id/followers_count_label_user_page_fragment"
+        app:layout_constraintBottom_toBottomOf="@id/followers_count_label_user_page_fragment"
+        app:layout_constraintTop_toTopOf="@id/followers_count_label_user_page_fragment"
+        app:layout_constraintEnd_toEndOf="parent"
+        />
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+    android:id="@+id/web_view_user_page_fragment"
+    app:layout_constraintEnd_toEndOf="parent"
+    app:layout_constraintTop_toBottomOf="@id/followers_count_number_user_page_fragment"
+    android:layout_margin="@dimen/fab_margin"
+    android:src="@drawable/ic_link_black"/>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/repositories_title_user_page_fragment"
+        android:text="@string/repositories_label"
+        android:textColor="@android:color/white"
+        android:layout_marginStart="40dp"
+        app:layout_constraintBottom_toTopOf = "@+id/user_repos_recycler_view"
+        app:layout_constraintTop_toBottomOf="@id/web_view_user_page_fragment"
+        android:textSize="@dimen/repos_label_text_size"
+        android:layout_marginTop="@dimen/fab_margin"
+        android:layout_marginBottom="@dimen/fab_margin"
+        app:layout_constraintStart_toStartOf="@+id/followers_count_label_user_page_fragment"
+        />
+    <android.support.v7.widget.RecyclerView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:id="@+id/user_repos_recycler_view"
+        app:layout_constraintTop_toBottomOf="@id/web_view_user_page_fragment"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:layout_margin="@dimen/margin_image_user_page"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+    </android.support.v7.widget.RecyclerView>
+
+
+</android.support.constraint.ConstraintLayout>
