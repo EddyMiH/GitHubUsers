@@ -13,7 +13,6 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.webkit.WebView;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -33,7 +32,7 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class UserPage extends Fragment {
+public class UserPageFragment extends Fragment {
 
     private ImageView userImg;
     private TextView userName;
@@ -44,7 +43,7 @@ public class UserPage extends Fragment {
 
     private List<Repository> reposName;
 
-    public UserPage() {
+    public UserPageFragment() {
     }
 
     @Nullable
@@ -53,11 +52,11 @@ public class UserPage extends Fragment {
         View rootView = inflater.inflate(R.layout.fragment_user_page, container, false);
 
         if (!getArguments().isEmpty()){
-            user = getArguments().getParcelable(UserList.USER_ARG);
-            Log.d(UserPage.class.getSimpleName(), "send data success getArguments is not empty");
+            user = getArguments().getParcelable(UserListFragment.USER_ARG);
+            Log.d(UserPageFragment.class.getSimpleName(), "send data success getArguments is not empty");
 
         }else{
-            Log.d(UserPage.class.getSimpleName(), "send data failed getArguments is empty");
+            Log.d(UserPageFragment.class.getSimpleName(), "send data failed getArguments is empty");
         }
 
         loadRepos();
@@ -70,19 +69,9 @@ public class UserPage extends Fragment {
                 .load(user.getImgUrl())
                 .into(this.userImg);
 
-
-//        Log.d(UserPage.class.getSimpleName(), "user full name is: " + user.getFullName());
-//        if(userName == null){
-//            Log.d(UserPage.class.getSimpleName(), "user name text view is null: " );
-//
-//        }else{
-//            Log.d(UserPage.class.getSimpleName(), "user name text view is NOT null: " );
-//            Log.d(UserPage.class.getSimpleName(), "user name text is: " + userName.getText() );
-//        }
-
         //userName.setText(user.getFullName());
         userName.setText(user.getFullName());
-        Log.d(UserPage.class.getSimpleName(), "user repos quan" + user.getFollowersCount() + "text view is:" + followerQuantity.getText() );
+        Log.d(UserPageFragment.class.getSimpleName(), "user repos quan" + user.getFollowersCount() + "text view is:" + followerQuantity.getText() );
         followerQuantity.setText(String.valueOf(user.getFollowersCount()));
         LinkView.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -96,17 +85,17 @@ public class UserPage extends Fragment {
 
         reposRecyclerAdapter = new ReposAdapter();
         final Handler h = new Handler();
+        Toast.makeText(getActivity(),"Data is Loading",Toast.LENGTH_SHORT).show();
         h.postDelayed(new Runnable() {
             @Override
             public void run() {
-                if(reposName == null){
-                    Log.d(UserPage.class.getSimpleName(), "loading repos name " );
-                    Toast.makeText(getActivity(),"Data is Loading",Toast.LENGTH_SHORT).show();
 
+                if(reposName == null){
+                    Log.d(UserPageFragment.class.getSimpleName(), "loading repos name " );
                     h.postDelayed(this, 500);
                 }else{
                     reposRecyclerAdapter.addItems(reposName);
-                    Log.d(UserPage.class.getSimpleName(), "repos size: " + reposName.size() );
+                    Log.d(UserPageFragment.class.getSimpleName(), "repos size: " + reposName.size() );
                 }
 
             }
@@ -125,7 +114,7 @@ public class UserPage extends Fragment {
     private void loadRepos(){
         if (NetworkUtil.isNetworkAvailable(getContext())){
             Call<List<Repository>> call = ApiManager.getApiClient().getRepos2(user.getUserName());
-            //Log.d(UserPage.class.getSimpleName(), "user repos url: " +  user.getRepos());
+            //Log.d(UserPageFragment.class.getSimpleName(), "user repos url: " +  user.getRepos());
 
             call.enqueue(new Callback<List<Repository>>() {
                 @Override
@@ -136,7 +125,7 @@ public class UserPage extends Fragment {
 
                 @Override
                 public void onFailure(Call<List<Repository>> call, Throwable t) {
-                    Log.d(UserPage.class.getSimpleName(), "onFailure callback");
+                    Log.d(UserPageFragment.class.getSimpleName(), "onFailure callback");
                 }
             });
         }

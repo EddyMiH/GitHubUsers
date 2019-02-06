@@ -10,7 +10,7 @@ import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 
-import com.example.eddy.githubusers.fragment.UserList;
+import com.example.eddy.githubusers.fragment.UserListFragment;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -30,7 +30,7 @@ public class MainActivity extends AppCompatActivity {
 
         context = getApplicationContext();
 
-        UserList userListFragment = new UserList();
+        UserListFragment userListFragment = new UserListFragment();
         getSupportFragmentManager().beginTransaction().add(R.id.container, userListFragment).addToBackStack(null).commit();
 
         FloatingActionButton fab = findViewById(R.id.fab);

@@ -18,7 +18,6 @@ import android.view.ViewGroup;
 import android.widget.Toast;
 import com.example.eddy.githubusers.MainActivity;
 import com.example.eddy.githubusers.R;
-import com.example.eddy.githubusers.adapter.CustomScrollListener;
 import com.example.eddy.githubusers.adapter.UsersAdapter;
 import com.example.eddy.githubusers.client.ApiManager;
 import com.example.eddy.githubusers.model.User;
@@ -32,10 +31,11 @@ import retrofit2.Response;
 
 import static com.example.eddy.githubusers.MainActivity.APP_TITLE;
 
-public class UserList extends Fragment {
+public class UserListFragment extends Fragment {
 
     private UsersAdapter recyclerAdapter;
     private List<User> users;
+    private static boolean isFragmentLaunch = true;
 
     //private int offset = 0;
     public final static int LIMIT = 10;
@@ -46,10 +46,10 @@ public class UserList extends Fragment {
     private UsersAdapter.OnItemSelectedListener mOnItemSelectedListener = new UsersAdapter.OnItemSelectedListener() {
         @Override
         public void onItemSelected(User user) {
-            //TODO send intent to fragment UserPage, replace fragments, add to backStack, and commit
+            //TODO send intent to fragment UserPageFragment, replace fragments, add to backStack, and commit
             Bundle bundle = new Bundle();
             bundle.putParcelable(USER_ARG, user);
-            UserPage fragment = new UserPage();
+            UserPageFragment fragment = new UserPageFragment();
             fragment.setArguments(bundle);
             getFragmentManager().beginTransaction().replace(R.id.container, fragment)
                     .addToBackStack(null)
@@ -64,12 +64,12 @@ public class UserList extends Fragment {
 
         if(NetworkUtil.isNetworkAvailable(MainActivity.getContextOfApplication())){
             Call<List<User>> call = ApiManager.getApiClient().getUsers(offset, LIMIT);
-            Log.d(UserList.class.getSimpleName(), "offset is: " + offset);
+            Log.d(UserListFragment.class.getSimpleName(), "offset is: " + offset);
 
             call.enqueue(new Callback<List<User>>() {
                 @Override
                 public void onResponse(Call<List<User>> call, Response<List<User>> response) {
-                    Log.d(UserList.class.getSimpleName(), "onResponse callback");
+                    Log.d(UserListFragment.class.getSimpleName(), "onResponse callback");
                     tempUsers = new ArrayList<>();
                     tempUsers = response.body();
                     //users = response.body();
@@ -82,7 +82,7 @@ public class UserList extends Fragment {
                             public void run() {
                                 counter++;
                                 if(tempUsers == null ){
-                                    Log.d(UserList.class.getSimpleName(), "I'm null");
+                                    Log.d(UserListFragment.class.getSimpleName(), "I'm null");
                                     if ( counter > 10){
                                         Toast.makeText(getActivity(),"Api Server is not responding", Toast.LENGTH_SHORT).show();
                                         return;
@@ -90,10 +90,10 @@ public class UserList extends Fragment {
 
                                     handler.postDelayed(this, 1000);
                                 }else{
-                                    Log.d(UserList.class.getSimpleName(), "tempList size: " + tempUsers.size());
+                                    Log.d(UserListFragment.class.getSimpleName(), "tempList size: " + tempUsers.size());
 
                                     users.addAll(tempUsers);
-                                    Log.d(UserList.class.getSimpleName(), "users size: " + users.size());
+                                    Log.d(UserListFragment.class.getSimpleName(), "users size: " + users.size());
                                     loadNameOfUsers();
                                 }
 
@@ -101,17 +101,17 @@ public class UserList extends Fragment {
                         }, 1000);
 
                     }else{
-                        Log.d(UserList.class.getSimpleName(), "tempList size: " + tempUsers.size());
+                        Log.d(UserListFragment.class.getSimpleName(), "tempList size: " + tempUsers.size());
 
                         users.addAll(tempUsers);
-                        Log.d(UserList.class.getSimpleName(), "users size: " + users.size());
+                        Log.d(UserListFragment.class.getSimpleName(), "users size: " + users.size());
                         loadNameOfUsers();
                     }
                 }
 
                 @Override
                 public void onFailure(Call<List<User>> call, Throwable t) {
-                    Log.d(UserList.class.getSimpleName(), "onFailure callback");
+                    Log.d(UserListFragment.class.getSimpleName(), "onFailure callback");
                 }
             });
         }
@@ -134,7 +134,7 @@ public class UserList extends Fragment {
                             public void run() {
                                 int counter = 0;
                                 if(userName == null ){
-                                    Toast.makeText(getActivity(),"Loading Data", Toast.LENGTH_SHORT).show();
+                                    //Toast.makeText(getActivity(),"Loading Data", Toast.LENGTH_SHORT).show();
                                     counter++;
                                     if(counter > 20) return;
                                     h.postDelayed(this,500);
@@ -145,12 +145,12 @@ public class UserList extends Fragment {
                             }
                         },500);
 
-                    Log.d(UserList.class.getSimpleName(), "onResponse callback load names");
+                    Log.d(UserListFragment.class.getSimpleName(), "onResponse callback load names");
                 }
 
                 @Override
                 public void onFailure(Call<UserName> call, Throwable t) {
-                    Log.d(UserList.class.getSimpleName(), "onFailure callback user name response");
+                    Log.d(UserListFragment.class.getSimpleName(), "onFailure callback user name response");
                 }
             });
         }
@@ -165,20 +165,25 @@ public class UserList extends Fragment {
             public void run() {
                recyclerAdapter.notifyDataSetChanged();
             }
-        },1000);
+        },2000);
         recyclerAdapter.setData(users);
-        Log.d(UserList.class.getSimpleName(), "all init are done, size of users:" + users.size());
+        Log.d(UserListFragment.class.getSimpleName(), "all init are done, size of users:" + users.size());
     }
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_user_recycler_view, container, false);
-
         RecyclerView recyclerView = rootView.findViewById(R.id.users_recycler_view);
 
         initRecyclerView(recyclerView);
-        loadUsers(0);
+        if(isFragmentLaunch){
+            loadUsers(0);
+            isFragmentLaunch = false;
+        }else{
+            recyclerAdapter.setData(users);
+        }
+
 
         return rootView;
     }
@@ -189,19 +194,46 @@ public class UserList extends Fragment {
         recyclerAdapter.setOnItemSelectedListener(mOnItemSelectedListener);
         getActivity().setTitle(APP_TITLE);
         //recyclerAdapter.addItems(users);
-        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getContext());
+        final LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getContext());
 
-
-        CustomScrollListener mCustomScrollListener = new CustomScrollListener(linearLayoutManager) {
+        RecyclerView.OnScrollListener recyclerViewOnScrollListener = new RecyclerView.OnScrollListener() {
             @Override
-            public void onLoadMore(int page, int totalItemsCount, RecyclerView view) {
-                loadUsers(totalItemsCount);
+            public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
+                super.onScrollStateChanged(recyclerView, newState);
+            }
+            private int previousTotalItemCount = 0;
+            private boolean loading = true;
+
+            @Override
+            public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+                int visibleItemCount = linearLayoutManager.getChildCount();
+                int totalItemCount = linearLayoutManager.getItemCount();
+                int firstVisibleItemPosition = linearLayoutManager.findFirstVisibleItemPosition();
+                int lastVisibleItem = linearLayoutManager.findLastVisibleItemPosition();
+
+                Log.d(UserListFragment.class.getSimpleName(), "visibleItemCount + firstVisibleItemPosition is: " + (visibleItemCount + firstVisibleItemPosition));
+                Log.d(UserListFragment.class.getSimpleName(), "lastVisibleItem is: " + lastVisibleItem);
+                Log.d(UserListFragment.class.getSimpleName(), "totalItemCount is: " + totalItemCount);
+
+                if (loading && (totalItemCount > previousTotalItemCount)) {
+                    loading = false;
+                    previousTotalItemCount = totalItemCount;
+                }
+
+                if((visibleItemCount + firstVisibleItemPosition) >= totalItemCount
+                    && lastVisibleItem+1 >= totalItemCount
+                    && firstVisibleItemPosition >=0 && totalItemCount >= LIMIT
+                    && !loading){
+                    loadUsers(totalItemCount);
+                    loading = true;
+                }
             }
         };
 
         view.setLayoutManager(linearLayoutManager);
         view.setHasFixedSize(true);
-        view.addOnScrollListener(mCustomScrollListener);
+        view.addOnScrollListener(recyclerViewOnScrollListener);
         view.setAdapter(recyclerAdapter);
     }
 
@@ -221,11 +253,33 @@ public class UserList extends Fragment {
             @Override
             public boolean onQueryTextSubmit(String s) {
                 //TODO search user using s, download from api, and add in recycler view (if necessary xD)
+                Call<User> call = ApiManager.getApiClient().getUser(s);
+                Log.d(UserListFragment.class.getSimpleName(),"submit search");
+                call.enqueue(new Callback<User>() {
+                    @Override
+                    public void onResponse(Call<User> call, Response<User> response) {
+                        User user = response.body();
+                        if(user != null){
+                            Log.d(UserListFragment.class.getSimpleName(),"NOT NULL !!!!!");
+
+                            users.add(0, user);
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<User> call, Throwable t) {
+                        Toast.makeText(getContext(), "User not found", Toast.LENGTH_LONG).show();
+                    }
+                });
+                recyclerAdapter.setData(users);
+                recyclerAdapter.notifyDataSetChanged();
+                recyclerAdapter.getFilter().filter(s);
                 return false;
             }
 
             @Override
             public boolean onQueryTextChange(String s) {
+
                 recyclerAdapter.getFilter().filter(s);
                 return false;
             }
@@ -233,6 +287,6 @@ public class UserList extends Fragment {
         super.onCreateOptionsMenu(menu, inflater);
     }
 
-    public UserList() {
+    public UserListFragment() {
     }
 }
