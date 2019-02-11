@@ -2,7 +2,7 @@ package com.example.eddy.githubusers.model;
 
 import com.google.gson.annotations.SerializedName;
 
-public class UserName {
+public class UserNameAndFollowers {
 
     @SerializedName("name")
     private String name;

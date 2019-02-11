@@ -24,7 +24,11 @@ import com.example.eddy.githubusers.adapter.ReposAdapter;
 import com.example.eddy.githubusers.client.ApiManager;
 import com.example.eddy.githubusers.model.Repository;
 import com.example.eddy.githubusers.model.User;
+import com.example.eddy.githubusers.persistence.AppDatabase;
+import com.example.eddy.githubusers.persistence.DatabaseWrapper;
+import com.example.eddy.githubusers.persistence.entity.RepositoryEntity;
 import com.example.eddy.githubusers.util.NetworkUtil;
+import com.example.eddy.githubusers.util.ParseEntityToModel;
 
 import java.util.List;
 
@@ -42,6 +46,8 @@ public class UserPageFragment extends Fragment {
     private User user;
 
     private List<Repository> reposName;
+
+    private AppDatabase database;
 
     public UserPageFragment() {
     }
@@ -95,6 +101,11 @@ public class UserPageFragment extends Fragment {
                     h.postDelayed(this, 500);
                 }else{
                     reposRecyclerAdapter.addItems(reposName);
+                    if (isLoaded){
+                        database.repoDao().addRepos(ParseEntityToModel.parseToRepositoryEntity(reposName, user.getId()));
+                        Log.d(UserPageFragment.class.getSimpleName(), "writing to repos DB: "  );
+
+                    }
                     Log.d(UserPageFragment.class.getSimpleName(), "repos size: " + reposName.size() );
                 }
 
@@ -107,28 +118,70 @@ public class UserPageFragment extends Fragment {
         recyclerView.setHasFixedSize(true);
         recyclerView.setAdapter(reposRecyclerAdapter);
 
-
         return rootView;
     }
 
+    private List<RepositoryEntity> repositoryEntityList;
+    private boolean isLoaded = false;
     private void loadRepos(){
-        if (NetworkUtil.isNetworkAvailable(getContext())){
-            Call<List<Repository>> call = ApiManager.getApiClient().getRepos2(user.getUserName());
-            //Log.d(UserPageFragment.class.getSimpleName(), "user repos url: " +  user.getRepos());
+        database = DatabaseWrapper.getAppDatabase();
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                repositoryEntityList = database.repoDao().findReposForUser(user.getId());
+                Log.d(UserPageFragment.class.getSimpleName(), "Reading from repos DB: " );
 
-            call.enqueue(new Callback<List<Repository>>() {
-                @Override
-                public void onResponse(Call<List<Repository>> call, Response<List<Repository>> response) {
-                    reposName = response.body();
+            }
+        }).start();
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                if (repositoryEntityList != null && !repositoryEntityList.isEmpty()){
+                    Log.d(UserPageFragment.class.getSimpleName(), "repos DB is not Null !!!!! " );
+                    reposName = ParseEntityToModel.parseToRepository(repositoryEntityList);
+                }else{
+                    isLoaded = true;
+                    if (NetworkUtil.isNetworkAvailable(getContext())){
+                        Call<List<Repository>> call = ApiManager.getApiClient().getRepos2(user.getUserName());
+                        //Log.d(UserPageFragment.class.getSimpleName(), "user repos url: " +  user.getRepos());
 
+                        call.enqueue(new Callback<List<Repository>>() {
+                            @Override
+                            public void onResponse(Call<List<Repository>> call, Response<List<Repository>> response) {
+                                reposName = response.body();
+                            }
+
+                            @Override
+                            public void onFailure(Call<List<Repository>> call, Throwable t) {
+                                Log.d(UserPageFragment.class.getSimpleName(), "onFailure callback");
+                            }
+                        });
+                    }
                 }
+            }
+        },1000);
 
-                @Override
-                public void onFailure(Call<List<Repository>> call, Throwable t) {
-                    Log.d(UserPageFragment.class.getSimpleName(), "onFailure callback");
-                }
-            });
-        }
+//        if (repositoryEntityList != null && !repositoryEntityList.isEmpty()){
+//            Log.d(UserPageFragment.class.getSimpleName(), "repos DB is not Null !!!!! " );
+//            reposName = ParseEntityToModel.parseToRepository(repositoryEntityList);
+//        }else{
+//            isLoaded = true;
+//            if (NetworkUtil.isNetworkAvailable(getContext())){
+//                Call<List<Repository>> call = ApiManager.getApiClient().getRepos2(user.getUserName());
+//                //Log.d(UserPageFragment.class.getSimpleName(), "user repos url: " +  user.getRepos());
+//
+//                call.enqueue(new Callback<List<Repository>>() {
+//                    @Override
+//                    public void onResponse(Call<List<Repository>> call, Response<List<Repository>> response) {
+//                        reposName = response.body();
+//                    }
+//
+//                    @Override
+//                    public void onFailure(Call<List<Repository>> call, Throwable t) {
+//                        Log.d(UserPageFragment.class.getSimpleName(), "onFailure callback");
+//                    }
+//                });
+//            }
+//        }
     }
-
 }

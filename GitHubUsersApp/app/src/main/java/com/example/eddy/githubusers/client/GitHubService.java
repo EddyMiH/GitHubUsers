@@ -2,7 +2,7 @@ package com.example.eddy.githubusers.client;
 
 import com.example.eddy.githubusers.model.Repository;
 import com.example.eddy.githubusers.model.User;
-import com.example.eddy.githubusers.model.UserName;
+import com.example.eddy.githubusers.model.UserNameAndFollowers;
 
 import java.util.List;
 
@@ -20,7 +20,7 @@ public interface GitHubService {
     Call<List<Repository>> getRepos2(@Path("username") String login);
 
     @GET("/users/{username}")
-    Call<UserName> getUserName(@Path("username") String login);
+    Call<UserNameAndFollowers> getUserName(@Path("username") String login);
 
     @GET("/users/{username}")
     Call<User> getUser(@Path("username") String login);

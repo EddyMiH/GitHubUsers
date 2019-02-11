@@ -11,6 +11,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 
 import com.example.eddy.githubusers.fragment.UserListFragment;
+import com.example.eddy.githubusers.persistence.DatabaseWrapper;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -29,6 +30,7 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
 
         context = getApplicationContext();
+        DatabaseWrapper.createUsers(this);
 
         UserListFragment userListFragment = new UserListFragment();
         getSupportFragmentManager().beginTransaction().add(R.id.container, userListFragment).addToBackStack(null).commit();

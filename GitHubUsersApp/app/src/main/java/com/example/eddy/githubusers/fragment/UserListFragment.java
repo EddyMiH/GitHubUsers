@@ -21,8 +21,13 @@ import com.example.eddy.githubusers.R;
 import com.example.eddy.githubusers.adapter.UsersAdapter;
 import com.example.eddy.githubusers.client.ApiManager;
 import com.example.eddy.githubusers.model.User;
-import com.example.eddy.githubusers.model.UserName;
+import com.example.eddy.githubusers.model.UserNameAndFollowers;
+import com.example.eddy.githubusers.persistence.AppDatabase;
+import com.example.eddy.githubusers.persistence.DatabaseWrapper;
+import com.example.eddy.githubusers.persistence.entity.UserEntity;
 import com.example.eddy.githubusers.util.NetworkUtil;
+import com.example.eddy.githubusers.util.ParseEntityToModel;
+
 import java.util.ArrayList;
 import java.util.List;
 import retrofit2.Call;
@@ -30,6 +35,7 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 import static com.example.eddy.githubusers.MainActivity.APP_TITLE;
+import static com.example.eddy.githubusers.MainActivity.getContextOfApplication;
 
 public class UserListFragment extends Fragment {
 
@@ -37,11 +43,11 @@ public class UserListFragment extends Fragment {
     private List<User> users;
     private static boolean isFragmentLaunch = true;
 
-    //private int offset = 0;
     public final static int LIMIT = 10;
     private Handler handler;
 
     public static final String USER_ARG = "user_argument";
+    private AppDatabase database;
 
     private UsersAdapter.OnItemSelectedListener mOnItemSelectedListener = new UsersAdapter.OnItemSelectedListener() {
         @Override
@@ -121,12 +127,12 @@ public class UserListFragment extends Fragment {
 
     private void loadNameOfUsers(){
         for (int i = lastItem; i < users.size(); ++i){
-            Call<UserName> mCall = ApiManager.getApiClient().getUserName(users.get(i).getUserName());
+            Call<UserNameAndFollowers> mCall = ApiManager.getApiClient().getUserName(users.get(i).getUserName());
             final int index = i;
-            mCall.enqueue(new Callback<UserName>() {
+            mCall.enqueue(new Callback<UserNameAndFollowers>() {
                 @Override
-                public void onResponse(Call<UserName> call, Response<UserName> response) {
-                    final UserName userName = response.body();
+                public void onResponse(Call<UserNameAndFollowers> call, Response<UserNameAndFollowers> response) {
+                    final UserNameAndFollowers userName = response.body();
 
                         final Handler h = new Handler();
                         h.postDelayed(new Runnable() {
@@ -149,26 +155,41 @@ public class UserListFragment extends Fragment {
                 }
 
                 @Override
-                public void onFailure(Call<UserName> call, Throwable t) {
+                public void onFailure(Call<UserNameAndFollowers> call, Throwable t) {
                     Log.d(UserListFragment.class.getSimpleName(), "onFailure callback user name response");
                 }
             });
         }
         lastItem = users.size();
         handler = new Handler();
-        //all started with the fact that GitHub does not give a name when getting all users list, so I
-        //using postDelay because recycler adapter add items faster than thread of retrofit has done its work
-        //so i didn't find other way to fix this problem
-        //if you can say more ELEGANT way, write me in Slack ;D
         handler.postDelayed(new Runnable() {
             @Override
             public void run() {
-               recyclerAdapter.notifyDataSetChanged();
+                Log.d(UserListFragment.class.getSimpleName(),"Notify Data Set Change for recycler View");
+                recyclerAdapter.notifyDataSetChanged();
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        database.userDao().addUsers(ParseEntityToModel.parseToUserEntity(users));
+                        Log.d(UserListFragment.class.getSimpleName(),"writing to DB");
+
+                    }
+                }).start();
             }
         },2000);
         recyclerAdapter.setData(users);
+//        new Thread(new Runnable() {
+//            @Override
+//            public void run() {
+//                database.userDao().addUsers(ParseEntityToModel.parseToUserEntity(users));
+//                Log.d(UserListFragment.class.getSimpleName(),"writing to DB");
+//
+//            }
+//        }).start();
         Log.d(UserListFragment.class.getSimpleName(), "all init are done, size of users:" + users.size());
     }
+
+    private List<UserEntity> userEntityList;
 
     @Nullable
     @Override
@@ -178,12 +199,35 @@ public class UserListFragment extends Fragment {
 
         initRecyclerView(recyclerView);
         if(isFragmentLaunch){
-            loadUsers(0);
+            //TODO get users from DB and check if users is null, load from network if not set into recycler adapter as below
+
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    userEntityList = database.userDao().getAllUsers();
+                }
+            }).start();
+
+            Toast.makeText(getContextOfApplication(),"Loading Data", Toast.LENGTH_LONG).show();
+            new Handler().postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    if ( userEntityList != null && !userEntityList.isEmpty() ){
+                        Log.d(UserListFragment.class.getSimpleName(),"reading from DB");
+
+                        users = ParseEntityToModel.parseToUser(userEntityList);
+                        recyclerAdapter.setData(users);
+                    }else{
+                        Log.d(UserListFragment.class.getSimpleName(),"DB is null !!!!");
+
+                        loadUsers(0);
+                    }
+                }
+            },1000);
             isFragmentLaunch = false;
         }else{
             recyclerAdapter.setData(users);
         }
-
 
         return rootView;
     }
@@ -242,6 +286,7 @@ public class UserListFragment extends Fragment {
         super.onCreate(savedInstanceState);
         users = new ArrayList<>();
         setHasOptionsMenu(true);
+        database = DatabaseWrapper.getAppDatabase();
     }
 
     @Override
@@ -252,17 +297,21 @@ public class UserListFragment extends Fragment {
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String s) {
-                //TODO search user using s, download from api, and add in recycler view (if necessary xD)
                 Call<User> call = ApiManager.getApiClient().getUser(s);
                 Log.d(UserListFragment.class.getSimpleName(),"submit search");
                 call.enqueue(new Callback<User>() {
                     @Override
                     public void onResponse(Call<User> call, Response<User> response) {
-                        User user = response.body();
+                        final User user = response.body();
                         if(user != null){
                             Log.d(UserListFragment.class.getSimpleName(),"NOT NULL !!!!!");
-
                             users.add(0, user);
+                            new Thread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    database.userDao().addOneUser(ParseEntityToModel.parseToUserEntity(user));
+                                }
+                            }).start();
                         }
                     }
 
